@@ -1,6 +1,6 @@
 package com.dgapr.demo.Repository;
 
-import com.dgapr.demo.Entity.Role;
+import com.dgapr.demo.Model.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 

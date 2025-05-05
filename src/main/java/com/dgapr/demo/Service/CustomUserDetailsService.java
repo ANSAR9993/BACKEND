@@ -1,6 +1,6 @@
-package com.dgapr.demo.Security;
+package com.dgapr.demo.Service;
 
-import com.dgapr.demo.Entity.User;
+import com.dgapr.demo.Model.User;
 import com.dgapr.demo.Repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;

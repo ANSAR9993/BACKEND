@@ -1,4 +1,4 @@
-package com.dgapr.demo.Entity;
+package com.dgapr.demo.Model;
 
 import jakarta.persistence.*;
 import lombok.Getter;

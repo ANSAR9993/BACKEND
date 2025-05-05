@@ -1,8 +1,12 @@
-package com.dgapr.demo.Entity;
+package com.dgapr.demo.Model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
@@ -11,6 +15,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "users")
 public class User {
 
@@ -27,11 +32,32 @@ public class User {
     @Column(name = "password_hash", length = 255, nullable = false)
     private String passwordHash;
 
+    @Column(name = "first_name", nullable = false)
+    private String firstname;
+
+    @Column(name = "last_name",nullable = false)
+    private String lastname;
+
+    @Column(name = "id_number", unique = true, nullable = false)
+    private String idNumber;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private UserStatu status;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
+    @CreatedBy
+    @Column(name = "created_by", nullable = false, updatable = false)
+    private String createdBy;
+
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt = Instant.now();
+
+    @LastModifiedBy
+    @Column(name = "updated_by")
+    private String updatedBy;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

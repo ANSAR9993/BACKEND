@@ -1,5 +1,6 @@
 package com.dgapr.demo.Security;
 
+import com.dgapr.demo.Service.CustomUserDetailsService;
 import jakarta.annotation.Nonnull;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -28,23 +29,48 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         this.userDetailsService = userDetailsService;
     }
 
+//    @Override
+//    protected void doFilterInternal(@Nonnull HttpServletRequest request,
+//                                    @Nonnull HttpServletResponse response,
+//                                    @Nonnull FilterChain filterChain)
+//            throws ServletException, IOException {
+//        String bearerToken = request.getHeader("Authorization");
+//        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+//            String token = bearerToken.substring(7);
+//            if (tokenProvider.validateToken(token)) {
+//                String username = tokenProvider.getUsernameFromJwt(token);
+//                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+//                var auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+//                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+//                SecurityContextHolder.getContext().setAuthentication(auth);
+//            }
+//        }
+//        filterChain.doFilter(request, response);
+//    }
+
     @Override
-    protected void doFilterInternal(@Nonnull HttpServletRequest request,
-                                    @Nonnull HttpServletResponse response,
-                                    @Nonnull FilterChain filterChain)
+    protected void doFilterInternal(@Nonnull HttpServletRequest req,
+                                    @Nonnull HttpServletResponse res,
+                                    @Nonnull FilterChain chain)
             throws ServletException, IOException {
-        String bearerToken = request.getHeader("Authorization");
-        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            String token = bearerToken.substring(7);
+        String header = req.getHeader(JwtTokenProvider.AUTH_HEADER);
+
+        if (header != null && header.startsWith(JwtTokenProvider.TOKEN_PREFIX)) {
+            String token = header.substring(JwtTokenProvider.TOKEN_PREFIX.length());
             if (tokenProvider.validateToken(token)) {
                 String username = tokenProvider.getUsernameFromJwt(token);
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                var auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(auth);
+
+                // only authenticate if not already done
+                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    UserDetails user = userDetailsService.loadUserByUsername(username);
+                    var auth = new UsernamePasswordAuthenticationToken(
+                            user, null, user.getAuthorities());
+                    auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(req));
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                }
             }
         }
-        filterChain.doFilter(request, response);
+        chain.doFilter(req, res);
     }
 
 }

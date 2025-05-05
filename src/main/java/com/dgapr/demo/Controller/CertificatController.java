@@ -3,20 +3,19 @@ package com.dgapr.demo.Controller;
 import com.dgapr.demo.Dto.CertifDto.CertificatCreateDto;
 import com.dgapr.demo.Dto.CertifDto.CertificatResponseDto;
 import com.dgapr.demo.Dto.CertifDto.CertificatUpdateDto;
-import com.dgapr.demo.Entity.Certificat;
+import com.dgapr.demo.Model.Certificat;
 import com.dgapr.demo.Repository.CertificatRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/dgapr/certificats")
+@RequestMapping("/api/certificats")
 public class CertificatController {
 
     private final CertificatRepository certificatRepository;
