@@ -1,8 +1,8 @@
-package com.dgapr.demo.Dto.LoginDto;
-
+package com.dgapr.demo.Dto.AuthDto;
 import jakarta.validation.constraints.NotBlank;
 
-public record LoginRequest(
+
+public record AuthRequest(
         @NotBlank(message = "Username must not be empty")
         String username,
 

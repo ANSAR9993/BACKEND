@@ -3,18 +3,26 @@ package com.dgapr.demo.Model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Getter
 @Setter
+@ToString
 @Entity
-@Table(name = "Certificate")
+@SQLDelete(sql = "UPDATE Certificate SET Is_Deleted = true WHERE id = ?")
+@SQLRestriction("Is_Deleted = false")
+@Table(name = "Certificate", uniqueConstraints = {
+        @UniqueConstraint(columnNames = "ID_Demand")
+})
 public class Certificat {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "ID_Demand", nullable = false, unique = true)
+    @Column(name = "ID_Demand", nullable = false)
     private String idDemand;
 
     @Column(name = "Demande_Name", nullable = false, length = 100)
@@ -38,4 +46,8 @@ public class Certificat {
     @Column(name = "Expiration_Date", nullable = false)
     private java.time.LocalDate expirationDate;
 
+    @Column(name = "Is_Deleted", nullable = false)
+    private Boolean isDeleted = false;
+
 }
+

@@ -29,7 +29,7 @@ public class User {
     @Column(length = 100, unique = true, nullable = false)
     private String email;
 
-    @Column(name = "password_hash", length = 255, nullable = false)
+    @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
     @Column(name = "first_name", nullable = false)
@@ -73,4 +73,7 @@ public class User {
             id = UUID.randomUUID();
         }
     }
+
+    @Column(name = "Is_Deleted", nullable = false)
+    private Boolean isDeleted = false;
 }

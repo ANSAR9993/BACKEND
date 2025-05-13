@@ -20,4 +20,7 @@ public class Role {
     @Column(name = "role_description")
     private String description;
 
+    @Column(name = "Is_Deleted", nullable = false)
+    private Boolean isDeleted = false;
+
 }

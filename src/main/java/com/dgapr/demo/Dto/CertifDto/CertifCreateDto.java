@@ -1,9 +1,6 @@
 package com.dgapr.demo.Dto.CertifDto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
 
@@ -11,9 +8,9 @@ import java.time.LocalDate;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CertificatResponseDto {
+@ToString
+public class CertifCreateDto {
 
-    private Integer id;
     private String idDemand;
     private String demandeName;
     private String model;
@@ -22,4 +19,5 @@ public class CertificatResponseDto {
     private String commonName;
     private LocalDate creationDate;
     private LocalDate expirationDate;
+
 }

@@ -11,7 +11,7 @@ import java.time.LocalDate;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CertificatUpdateDto {
+public class CertifUpdateDto {
 
     private String demandeName;
     private String model;
