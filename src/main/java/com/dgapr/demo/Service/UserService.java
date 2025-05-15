@@ -6,11 +6,9 @@ import com.dgapr.demo.Model.User;
 import com.dgapr.demo.Model.UserStatu;
 import com.dgapr.demo.Repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.support.BeanDefinitionDsl;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -70,7 +68,7 @@ public class UserService {
 
         User user = new User();
         updateUserFromDto(user, userDto);
-        user.setPasswordHash(passwordEncoder.encode(userDto.getPassword()));
+        user.setPassword(passwordEncoder.encode(userDto.getPassword()));
 
         log.debug("Saving new user: {}", user);
 
@@ -99,7 +97,7 @@ public class UserService {
 
         updateUserFromDto(user, userDto);
         if (userDto.getPassword() != null && !userDto.getPassword().trim().isEmpty()) {
-            user.setPasswordHash(passwordEncoder.encode(userDto.getPassword()));
+            user.setPassword(passwordEncoder.encode(userDto.getPassword()));
         }
 
         log.debug("Saving updated user: {}", user);
@@ -120,7 +118,7 @@ public class UserService {
         user.setFirstname(userDto.getFirstname());
         user.setLastname(userDto.getLastname());
         user.setEmail(userDto.getEmail());
-        user.setRoles(userDto.getRoles());
+        user.setRole(userDto.getRole());
 
         // Set default status to ACTIVE if not specified
         if (userDto.getStatus() == null) {

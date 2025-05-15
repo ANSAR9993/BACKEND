@@ -8,8 +8,6 @@ import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 @Getter
@@ -29,8 +27,8 @@ public class User {
     @Column(length = 100, unique = true, nullable = false)
     private String email;
 
-    @Column(name = "password_hash", nullable = false)
-    private String passwordHash;
+    @Column(name = "password", nullable = false)
+    private String password;
 
     @Column(name = "first_name", nullable = false)
     private String firstname;
@@ -40,6 +38,10 @@ public class User {
 
     @Column(name = "id_number", unique = true, nullable = false)
     private String idNumber;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Roles role;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
@@ -59,13 +61,16 @@ public class User {
     @Column(name = "updated_by")
     private String updatedBy;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "user_role",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
-    private Set<Role> roles = new HashSet<>();
+    @Column(name = "Is_Deleted", nullable = false)
+    private Boolean isDeleted = false;
+
+//    @ManyToMany(fetch = FetchType.EAGER)
+//    @JoinTable(
+//            name = "user_role",
+//            joinColumns = @JoinColumn(name = "user_id"),
+//            inverseJoinColumns = @JoinColumn(name = "role_id")
+//    )
+//    private Set<Role> roles = new HashSet<>();
 
     @PrePersist
     public void generateId(){
@@ -74,6 +79,5 @@ public class User {
         }
     }
 
-    @Column(name = "Is_Deleted", nullable = false)
-    private Boolean isDeleted = false;
+
 }

@@ -124,7 +124,7 @@ public class UserController {
                             "id_number", user.getIdNumber(),
                             "username", user.getUsername(),
                             "email", user.getEmail(),
-                            "role", user.getRoles()
+                            "role", user.getRole().name()
                     )
             ));
         } catch (EntityNotFoundException e) {
