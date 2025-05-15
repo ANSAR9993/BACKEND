@@ -1,0 +1,10 @@
+// src/main/java/com/dgapr/demo/Repository/AuditLogRepository.java
+package com.dgapr.demo.Repository;
+
+import com.dgapr.demo.Model.AuditLog;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
+
+
+}

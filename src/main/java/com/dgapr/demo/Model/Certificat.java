@@ -1,5 +1,6 @@
 package com.dgapr.demo.Model;
 
+import com.dgapr.demo.Audit.AuditListener;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,7 +17,8 @@ import org.hibernate.annotations.SQLRestriction;
 @Table(name = "Certificate", uniqueConstraints = {
         @UniqueConstraint(columnNames = "ID_Demand")
 })
-public class Certificat {
+@EntityListeners(AuditListener.class)
+public class Certificat extends AuditedEntity implements Identifiable<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,16 +27,16 @@ public class Certificat {
     @Column(name = "ID_Demand", nullable = false)
     private String idDemand;
 
-    @Column(name = "Demande_Name", nullable = false, length = 100)
+    @Column(name = "Demande_Name", nullable = false)
     private String demandeName;
 
-    @Column(name = "Model", nullable = false, length = 50)
+    @Column(name = "Model", nullable = false)
     private String model;
 
-    @Column(name = "Type", nullable = false, length = 10)
+    @Column(name = "Type", nullable = false)
     private String type;
 
-    @Column(name = "Organizational_Unit", length = 100)
+    @Column(name = "Organizational_Unit")
     private String organizationalUnit;
 
     @Column(name = "Common_Name", nullable = false)
@@ -46,8 +48,10 @@ public class Certificat {
     @Column(name = "Expiration_Date", nullable = false)
     private java.time.LocalDate expirationDate;
 
-    @Column(name = "Is_Deleted", nullable = false)
-    private Boolean isDeleted = false;
+    @Override
+    public Integer getId() {
+        return id;
+    }
 
 }
 

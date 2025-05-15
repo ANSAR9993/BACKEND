@@ -1,11 +1,11 @@
 package com.dgapr.demo.Model;
 
+import com.dgapr.demo.Audit.AuditListener;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.data.annotation.CreatedBy;
-import org.springframework.data.annotation.LastModifiedBy;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -13,9 +13,11 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
-@EntityListeners(AuditingEntityListener.class)
+@SQLDelete(sql = "UPDATE users SET Is_Deleted = true WHERE id = ?") // New annotation
+@SQLRestriction("Is_Deleted = false")
 @Table(name = "users")
-public class User {
+@EntityListeners(AuditListener.class)
+public class User extends AuditedEntity implements Identifiable<UUID> {
 
     @Id
     @Column(columnDefinition = "uniqueidentifier")
@@ -50,27 +52,19 @@ public class User {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
-    @CreatedBy
     @Column(name = "created_by", nullable = false, updatable = false)
     private String createdBy;
 
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt = Instant.now();
 
-    @LastModifiedBy
     @Column(name = "updated_by")
     private String updatedBy;
 
-    @Column(name = "Is_Deleted", nullable = false)
-    private Boolean isDeleted = false;
-
-//    @ManyToMany(fetch = FetchType.EAGER)
-//    @JoinTable(
-//            name = "user_role",
-//            joinColumns = @JoinColumn(name = "user_id"),
-//            inverseJoinColumns = @JoinColumn(name = "role_id")
-//    )
-//    private Set<Role> roles = new HashSet<>();
+    @Override
+    public UUID getId() {
+        return id;
+    }
 
     @PrePersist
     public void generateId(){
