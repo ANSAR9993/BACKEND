@@ -3,7 +3,7 @@ package com.dgapr.demo.Service;
 import com.dgapr.demo.Dto.CertifDto.CertifCreateDto;
 import com.dgapr.demo.Dto.CertifDto.CertifResponseDto;
 import com.dgapr.demo.Dto.CertifDto.CertifUpdateDto;
-import com.dgapr.demo.Model.Certificat;
+import com.dgapr.demo.Model.Certificate;
 import com.dgapr.demo.Repository.CertifRepository;
 import com.dgapr.demo.Specification.CertificatSpecification;
 import jakarta.validation.constraints.NotNull;
@@ -38,11 +38,11 @@ public class CertifService {
     @NotNull
     private Page<CertifResponseDto> getCertifResponseDtos(Pageable pageable, Map<String, String> filterParams) {
         CertificatSpecification spec = new CertificatSpecification(filterParams);
-        Page<Certificat> certificatPage = certifRepository.findAll(spec, pageable);
+        Page<Certificate> certificatPage = certifRepository.findAll(spec, pageable);
 
         List<CertifResponseDto> content = certificatPage.getContent()
                 .stream()
-                .map(certificat -> modelMapper.map(certificat, CertifResponseDto.class))
+                .map(certificate -> modelMapper.map(certificate, CertifResponseDto.class))
                 .collect(Collectors.toList());
 
         return new PageImpl<>(content, certificatPage.getPageable(), certificatPage.getTotalElements());
@@ -51,7 +51,7 @@ public class CertifService {
     public Optional<CertifResponseDto> getCertificatById(Integer id) {
         return certifRepository.findById(id)
                 .filter(cert -> !cert.getIsDeleted())
-                .map(certificat -> modelMapper.map(certificat, CertifResponseDto.class));
+                .map(certificate -> modelMapper.map(certificate, CertifResponseDto.class));
     }
 
     public void createCertificat(CertifCreateDto dto) {
@@ -60,9 +60,9 @@ public class CertifService {
             throw new IllegalArgumentException("One or more required fields are null.");
         }
 
-        Certificat certificat = modelMapper.map(dto, Certificat.class);
+        Certificate certificate = modelMapper.map(dto, Certificate.class);
         try {
-            certifRepository.save(certificat);
+            certifRepository.save(certificate);
         } catch (DataIntegrityViolationException e) {
             throw new IllegalArgumentException("Unique constraint violation or invalid data.");
         }
@@ -70,19 +70,19 @@ public class CertifService {
 
     public Optional<CertifResponseDto> updateCertificat(Integer id, CertifUpdateDto dto) {
         return certifRepository.findById(id)
-                .map(certificat -> {
-                    certificat.setDemandeName(dto.getDemandeName());
-                    certificat.setModel(dto.getModel());
-                    certificat.setType(dto.getType());
-                    certificat.setOrganizationalUnit(dto.getOrganizationalUnit());
-                    certificat.setCommonName(dto.getCommonName());
-                    certificat.setExpirationDate(dto.getExpirationDate());
+                .map(certificate -> {
+                    certificate.setDemandeName(dto.getDemandeName());
+                    certificate.setModel(dto.getModel());
+                    certificate.setType(dto.getType());
+                    certificate.setOrganizationalUnit(dto.getOrganizationalUnit());
+                    certificate.setCommonName(dto.getCommonName());
+                    certificate.setExpirationDate(dto.getExpirationDate());
                     try {
-                        certifRepository.save(certificat);
+                        certifRepository.save(certificate);
                     } catch (DataIntegrityViolationException e) {
                         throw new IllegalArgumentException("Unique constraint violation or invalid data.");
                     }
-                    return modelMapper.map(certificat, CertifResponseDto.class);
+                    return modelMapper.map(certificate, CertifResponseDto.class);
                 });
     }
 

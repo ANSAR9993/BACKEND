@@ -18,7 +18,7 @@ import org.hibernate.annotations.SQLRestriction;
         @UniqueConstraint(columnNames = "ID_Demand")
 })
 @EntityListeners(AuditListener.class)
-public class Certificat extends AuditedEntity implements Identifiable<Integer> {
+public class Certificate extends AuditedEntity implements Identifiable<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

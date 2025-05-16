@@ -29,7 +29,7 @@ Concevoir une application web métier pour :
     - Spring Data JPA, SQL Server
     - Spring Security JWT
     - (Spring Mail + Scheduler) !!
-    - Modules : `certificat`, `device`, `sites`, `marche`, `audit`
+    - Modules : `certificate`, `device`, `sites`, `marche`, `audit`
 
 2. **Frontend** (React 19, Vite, TypeScript)
 

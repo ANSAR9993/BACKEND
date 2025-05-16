@@ -6,8 +6,6 @@ import com.dgapr.demo.Model.Identifiable;
 import com.dgapr.demo.Repository.AuditLogRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.PostLoad;
 import jakarta.persistence.PostPersist;
 import jakarta.persistence.PreRemove;
@@ -25,9 +23,8 @@ public class AuditListener {
 
     private static AuditLogRepository repo;
     private static ObjectMapper mapper;
-
-    @PersistenceContext
-    private EntityManager entityManager;
+    // hold the JSON snapshot after loading
+    private static final Map<Object, String> originalStateMap = Collections.synchronizedMap(new WeakHashMap<>());
 
     @Autowired
     public void setRepo(AuditLogRepository repository) {
@@ -38,10 +35,7 @@ public class AuditListener {
         if (mapper == null) {
             mapper = new ObjectMapper()
                     .registerModule(new JavaTimeModule())
-                    .configure(
-                            com.fasterxml.jackson.databind.SerializationFeature.FAIL_ON_EMPTY_BEANS,
-                            false
-                    );
+                    .configure(com.fasterxml.jackson.databind.SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
         }
         return mapper;
     }
@@ -68,10 +62,6 @@ public class AuditListener {
         );
         repo.save(a);
     }
-
-    // hold the JSON snapshot after loading
-    private static final Map<Object, String> originalStateMap =
-            Collections.synchronizedMap(new WeakHashMap<>());
 
     @PostLoad
     public void onLoad(Object entity) {

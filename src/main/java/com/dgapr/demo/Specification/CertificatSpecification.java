@@ -1,6 +1,6 @@
 package com.dgapr.demo.Specification;
 
-import com.dgapr.demo.Model.Certificat;
+import com.dgapr.demo.Model.Certificate;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class CertificatSpecification implements Specification<Certificat> {
+public class CertificatSpecification implements Specification<Certificate> {
 
     private final Map<String, String> filterParams;
 
@@ -24,7 +24,7 @@ public class CertificatSpecification implements Specification<Certificat> {
 
     @Override
     public Predicate toPredicate(
-            Root<Certificat> root,
+            Root<Certificate> root,
             CriteriaQuery<?> query,
             CriteriaBuilder criteriaBuilder)
     {

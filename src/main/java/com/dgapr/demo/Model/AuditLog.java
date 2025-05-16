@@ -1,4 +1,3 @@
-// src/main/java/com/dgapr/demo/Model/AuditLog.java
 package com.dgapr.demo.Model;
 
 import jakarta.persistence.*;
@@ -7,11 +6,13 @@ import lombok.Setter;
 
 import java.time.Instant;
 
-@Getter @Setter
+@Getter
+@Setter
 @Entity
 @Table(
         name = "audit_log",
         indexes = {
+                @Index(name = "idx_audit_table_rowid",   columnList = "tableName, rowId"),
                 @Index(name = "idx_audit_table_ts",      columnList = "tableName, timestamp"),
                 @Index(name = "idx_audit_rowid",         columnList = "rowId"),
                 @Index(name = "idx_audit_modified_by",   columnList = "modifiedBy")
