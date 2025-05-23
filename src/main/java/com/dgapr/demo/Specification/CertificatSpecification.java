@@ -26,61 +26,85 @@ public class CertificatSpecification implements Specification<Certificate> {
     public Predicate toPredicate(
             Root<Certificate> root,
             CriteriaQuery<?> query,
-            CriteriaBuilder criteriaBuilder)
-    {
+            CriteriaBuilder cb) {
+
         List<Predicate> predicates = new ArrayList<>();
 
-        // Filter for active certificates
-        predicates.add(criteriaBuilder.isFalse(root.get("isDeleted")));
-
+        // --- Soft-delete: include only non-deleted users ---
+        predicates.add(cb.isFalse(root.get("isDeleted")));
 
         // --- Global Search ---
         String globalSearchTerm = filterParams.get("globalSearch");
         if (StringUtils.hasText(globalSearchTerm)) {
-            String lowerCaseSearchTerm = "%" + globalSearchTerm.toLowerCase() + "%";
-            Predicate globalPredicate = criteriaBuilder.or(
-                    criteriaBuilder.like(criteriaBuilder.lower(root.get("idDemand")), lowerCaseSearchTerm),
-                    criteriaBuilder.like(criteriaBuilder.lower(root.get("demandeName")), lowerCaseSearchTerm),
-                    criteriaBuilder.like(criteriaBuilder.lower(root.get("model")), lowerCaseSearchTerm),
-                    criteriaBuilder.like(criteriaBuilder.lower(root.get("type")), lowerCaseSearchTerm),
-                    criteriaBuilder.like(criteriaBuilder.lower(root.get("organizationalUnit")), lowerCaseSearchTerm),
-                    criteriaBuilder.like(criteriaBuilder.lower(root.get("commonName")), lowerCaseSearchTerm)
+            String term = "%" + globalSearchTerm.toLowerCase() + "%";
+            predicates.add(
+                    cb.or(
+                            cb.like(cb.lower(root.get("idDemand")), term),
+                            cb.like(cb.lower(root.get("demandeName")), term),
+                            cb.like(cb.lower(root.get("model")), term),
+                            cb.like(cb.lower(root.get("type")), term),
+                            cb.like(cb.lower(root.get("organizationalUnit")), term),
+                            cb.like(cb.lower(root.get("commonName")), term)
+                    )
             );
-            predicates.add(globalPredicate);
         }
 
         // --- Column Specific Filtering ---
         filterParams.forEach((key, value) -> {
-            if (!key.equals("globalSearch") && !key.equals("page") && !key.equals("size") && !key.startsWith("sort") && !key.equals("isDeleted")) { // Optionally ignore 'isDeleted' from params if always handled
-                if (StringUtils.hasText(value)) {
-                    if (isTextField(key)) {
-                        predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get(key)), "%" + value.toLowerCase() + "%"));
-                    } else if (isDateField(key)) {
-                        try {
-                            LocalDate filterDate = LocalDate.parse(value); // date format YYYY-MM-DD
-                            predicates.add(criteriaBuilder.equal(root.get(key), filterDate));
-                        } catch (DateTimeParseException e) {
-                            System.err.println("Invalid date format for filter '" + key + "': " + value);
-                            // Optionally, you might want to throw an exception or handle this error more gracefully
-                        }
+            if (!key.equals("globalSearch")
+                    && !key.equals("page")
+                    && !key.equals("size")
+                    && !key.startsWith("sort")
+                    && !key.equals("isDeleted")
+                    && StringUtils.hasText(value)) {
+
+                if (isTextField(key)) {
+                    predicates.add(
+                            cb.like(
+                                    cb.lower(root.get(key)),
+                                    "%" + value.toLowerCase() + "%"
+                            )
+                    );
+
+                } else if (isDateField(key)) {
+                    try {
+                        LocalDate date = LocalDate.parse(value);
+                        predicates.add(cb.equal(root.get(key), date));
+                    } catch (DateTimeParseException e) {
+                        System.err.println("Invalid date format for filter '" + key + "': '" + value + "'. Expected YYYY-MM-DD. Error: " + e.getMessage());
                     }
-                    // else if (isNumericField(key)) { /* Add logic for numeric fields */ }
+
+                } else if (isNumericField(key)) {
+                    try {
+                        Long num = Long.valueOf(value);
+                        predicates.add(cb.equal(root.get(key), num));
+                    } catch (NumberFormatException e) {
+                        System.err.println("Invalid number for filter '" + key + "': " + value);
+                    }
                 }
             }
         });
 
-        return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        return cb.and(predicates.toArray(new Predicate[0]));
     }
 
     private boolean isTextField(String fieldName) {
-        return fieldName.equals("idDemand") || fieldName.equals("demandeName") ||
-                fieldName.equals("model") || fieldName.equals("type") ||
-                fieldName.equals("organizationalUnit") || fieldName.equals("commonName");
+        return fieldName.equals("idDemand")
+                || fieldName.equals("demandeName")
+                || fieldName.equals("model")
+                || fieldName.equals("type")
+                || fieldName.equals("organizationalUnit")
+                || fieldName.equals("commonName");
     }
 
     private boolean isDateField(String fieldName) {
-        return fieldName.equals("creationDate") || fieldName.equals("expirationDate");
+        return fieldName.equals("creationDate")
+                || fieldName.equals("expirationDate");
     }
 
-    // private boolean isNumericField(String fieldName) { /* Implement if needed */ return false; }
+    private boolean isNumericField(String fieldName) {
+        // Add your numeric field names here
+        return fieldName.equals("idDemand")   // if numeric
+                || fieldName.equals("someNumericField");
+    }
 }

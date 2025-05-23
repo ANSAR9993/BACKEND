@@ -1,6 +1,6 @@
 package com.dgapr.demo.Dto.UserDto;
 
-import com.dgapr.demo.Model.Roles;
+import com.dgapr.demo.Model.Role;
 import com.dgapr.demo.Model.UserStatu;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -19,11 +19,10 @@ public class UserDto {
     private String firstname;
     private String lastname;
     private String idNumber;
-    private UserStatu status;
+    private UserStatu status = UserStatu.ACTIVE;
     private Instant createdAt = Instant.now();
     private String createdBy;
     private Instant updatedAt = Instant.now();
     private String updatedBy;
-    private Roles role;
-
+    private Role role;
 }

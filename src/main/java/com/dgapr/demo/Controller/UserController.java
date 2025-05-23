@@ -9,6 +9,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -32,13 +36,12 @@ public class UserController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<UserResponseDto>> getAllUsers() {
-        try {
-            return ResponseEntity.ok(userService.getAllUsers());
-        } catch (Exception e) {
-            log.error("Error getting all users", e);
-            return ResponseEntity.internalServerError().build();
-        }
+    public ResponseEntity<Page<UserResponseDto>> getUsers(
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+            @RequestParam Map<String,String> filterParams
+    ) {
+        Page<UserResponseDto> result = userService.getUsers(pageable, filterParams);
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/{id}")
@@ -70,9 +73,6 @@ public class UserController {
         } catch (IllegalArgumentException e) {
             log.error("Error creating user: Invalid data provided - {}", e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
-        } catch (Exception e) {
-            log.error("Error creating user", e);
-            return ResponseEntity.internalServerError().body(Map.of("message", e.getMessage()));
         }
     }
 
@@ -94,15 +94,12 @@ public class UserController {
         } catch (IllegalArgumentException e) {
             log.error("Error update user: Invalid user data: {}", e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
-        } catch (Exception e) {
-            log.error("Error updating user with id: {}", id, e);
-            return ResponseEntity.internalServerError().body(Map.of("message", e.getMessage()));
         }
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> deleteUser(@PathVariable UUID id, @Valid @RequestBody String userIdNumber) {
+    public ResponseEntity<?> deleteUser(@PathVariable UUID id) {
         try {
             log.debug("Deleting user with id: {}", id);
             // Get user details before deletion
@@ -130,7 +127,7 @@ public class UserController {
         } catch (EntityNotFoundException e) {
             log.warn("warn deleting user: User not found with id: {}", id);
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("message", String.format("Cannot delete: User with ID %s not found", userIdNumber)));
+                    .body(Map.of("message", String.format("Cannot delete: User with ID %s not found", id)));
         } catch (Exception e) {
             log.error("Error deleting user with id: {}", id, e);
             return ResponseEntity.internalServerError().body(Map.of("message", e.getMessage()));
@@ -141,11 +138,12 @@ public class UserController {
     public ResponseEntity<?> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
         try {
             UserResponseDto user = userService.loadUserByUsername(userDetails.getUsername());
+            log.info("user is finde", user.getUsername());
             return ResponseEntity.ok(Map.of(
                     "id", user.getId(),
                     "username", user.getUsername(),
                     "email", user.getEmail(),
-                    "role", user.getRoles(),
+                    "role", user.getRole(),
                     "firstname", user.getFirstname(),
                     "lastname", user.getLastname()
             ));
@@ -157,4 +155,5 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "Internal Server Error"));
         }
     }
+
 }

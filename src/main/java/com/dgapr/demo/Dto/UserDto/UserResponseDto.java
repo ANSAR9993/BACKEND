@@ -1,6 +1,6 @@
 package com.dgapr.demo.Dto.UserDto;
 
-import com.dgapr.demo.Model.Roles;
+import com.dgapr.demo.Model.Role;
 import com.dgapr.demo.Model.UserStatu;
 import lombok.Getter;
 import lombok.Setter;
@@ -23,6 +23,6 @@ public class UserResponseDto {
     private String createdBy;
     private Instant updatedAt = Instant.now();
     private String updatedBy;
-    private Roles roles;
+    private Role role;
 
 }

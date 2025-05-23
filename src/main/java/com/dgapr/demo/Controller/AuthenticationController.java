@@ -36,4 +36,17 @@ public class AuthenticationController {
         }
     }
 
+//    @PostMapping("/refresh")
+//    public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody AuthRequest request) {
+//        AuthResponse response = authenticationService.authenticate(request);
+//        // TODO : ....
+//    }
+//
+//    @PostMapping("/logout")
+//    public ResponseEntity<AuthResponse> logout(@Valid @RequestBody AuthRequest request) {
+//        AuthResponse response = authenticationService.authenticate(request);
+//        // TODO : ....
+//    }
+
+
 }

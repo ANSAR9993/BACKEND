@@ -30,36 +30,24 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    // Example handler for a custom or specific application exception
-    // If you have custom exceptions like ResourceNotFoundException, handle them here
-    // @ExceptionHandler(ResourceNotFoundException.class)
-    // public ResponseEntity<Object> handleResourceNotFoundException(ResourceNotFoundException ex, WebRequest request) {
-    //     Map<String, Object> body = new LinkedHashMap<>();
-    //     body.put("timestamp", LocalDateTime.now());
-    //     body.put("status", HttpStatus.NOT_FOUND.value());
-    //     body.put("error", "Not Found");
-    //     body.put("message", ex.getMessage());
-    //     body.put("path", request.getDescription(false));
-    //     return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
-    // }
-
-    // You can override methods from ResponseEntityExceptionHandler
-    // to customize handling of Spring MVC exceptions like MethodArgumentNotValidException (for @Valid)
-    // or HttpRequestMethodNotSupportedException etc.
-
-    // Example for handling IllegalArgumentException explicitly if not caught in controller
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
+    @ExceptionHandler(MultiFieldValidationException.class)
+    public ResponseEntity<Object> handleMultiFieldValidationException(MultiFieldValidationException ex) {
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", LocalDateTime.now());
+        body.put("timestamp", LocalDateTime.now().toString());
         body.put("status", HttpStatus.BAD_REQUEST.value());
-        body.put("error", "Bad Request");
+        body.put("error", HttpStatus.BAD_REQUEST.getReasonPhrase());
         body.put("message", ex.getMessage());
-        body.put("path", request.getDescription(false));
-
+        body.put("errors", ex.getErrors());
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
-    // Add handlers for DataIntegrityViolationException if needed for more specific messages
-    // (The service already throws IllegalArgumentException for it, which is caught above)
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException ex) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", LocalDateTime.now().toString());
+        body.put("status", HttpStatus.BAD_REQUEST.value());
+        body.put("error", HttpStatus.BAD_REQUEST.getReasonPhrase());
+        body.put("message", ex.getMessage());
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
 }

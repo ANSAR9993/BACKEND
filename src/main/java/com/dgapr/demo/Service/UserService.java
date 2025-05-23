@@ -5,16 +5,20 @@ import com.dgapr.demo.Dto.UserDto.UserResponseDto;
 import com.dgapr.demo.Model.User;
 import com.dgapr.demo.Model.UserStatu;
 import com.dgapr.demo.Repository.UserRepository;
+import com.dgapr.demo.Specification.UserSpecification;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -34,20 +38,24 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public List<UserResponseDto> getAllUsers() {
-        return userRepository.findAll()
-                .stream()
-                .map(user -> modelMapper.map(user, UserResponseDto.class))
-                .collect(Collectors.toList());
+    public Page<UserResponseDto> getUsers(Pageable pageable,
+                                          Map<String,String> filterParams) {
+        UserSpecification spec = new UserSpecification(filterParams);
+        Page<User> page = userRepository.findAll(spec, pageable);
+        return page.map(u -> modelMapper.map(u, UserResponseDto.class));
     }
+//
+//    public List<UserResponseDto> getAllUsers() {
+//        return userRepository.findAll()
+//                .stream()
+//                .map(user -> modelMapper.map(user, UserResponseDto.class))
+//                .collect(Collectors.toList());
+//    }
 
-    public Optional<UserResponseDto> getUserById(UUID id) throws EntityNotFoundException {
-
-        return userRepository.findById(id)
-                .stream()
-                .map(user -> modelMapper.map(user, UserResponseDto.class))
-                .findFirst();
-
+    public UserResponseDto getUserById(UUID id) throws EntityNotFoundException {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + id));
+        return modelMapper.map(user, UserResponseDto.class);
     }
 
     @Transactional
@@ -56,83 +64,102 @@ public class UserService {
         if (userDto.getPassword() == null || userDto.getPassword().trim().isEmpty()) {
             throw new IllegalArgumentException("Password is required");
         }
-        if (userRepository.existsByUsername(userDto.getUsername())) {
-            throw new IllegalArgumentException("Username already exists");
+        Map<String, String> validationErrors = new java.util.HashMap<>();
+        if (userRepository.existsByUsername(userDto.getUsername().trim().toLowerCase())) {
+            validationErrors.put("username", "Username already exists");
         }
-        if (userRepository.existsByEmail(userDto.getEmail())) {
-            throw new IllegalArgumentException("Email already exists");
+        if (userRepository.existsByEmail(userDto.getEmail().trim().toLowerCase())) {
+            log.debug("Email already exists: {}", userDto.getEmail());
+            validationErrors.put("email", "Email already exists");
         }
-        if (userRepository.existsByIdNumber(userDto.getIdNumber())) {
-            throw new IllegalArgumentException("ID number already exists");
+        if (userRepository.existsByIdNumber(userDto.getIdNumber().trim().toLowerCase())) {
+            validationErrors.put("idNumber", "ID number already exists");
         }
-
+        if (!validationErrors.isEmpty()) {
+            throw new com.dgapr.demo.Exception.MultiFieldValidationException(
+                "Validation failed due to duplicate fields", validationErrors);
+        }
         User user = new User();
         updateUserFromDto(user, userDto);
-        user.setPassword(passwordEncoder.encode(userDto.getPassword()));
-
+        user.setPassword(passwordEncoder.encode(userDto.getPassword().trim()));
         log.debug("Saving new user: {}", user);
-
         return modelMapper.map(userRepository.save(user), UserDto.class);
     }
 
     @Transactional
     public UserDto updateUser(UUID id, UserDto userDto) {
         log.debug("Updating user {} with data: {}", id, userDto);
-
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
-
+        Map<String, String> validationErrors = new java.util.HashMap<>();
         if (!user.getUsername().equals(userDto.getUsername()) &&
-                userRepository.existsByUsername(userDto.getUsername())) {
-            throw new IllegalArgumentException("Username already exists");
+                userRepository.existsByUsername(userDto.getUsername().trim().toLowerCase())) {
+            validationErrors.put("username", "Username already exists");
         }
         if (!user.getEmail().equals(userDto.getEmail()) &&
-                userRepository.existsByEmail(userDto.getEmail())) {
-            throw new IllegalArgumentException("Email already exists");
+                userRepository.existsByEmail(userDto.getEmail().trim().toLowerCase())) {
+            validationErrors.put("email", "Email already exists");
         }
         if (!user.getIdNumber().equals(userDto.getIdNumber()) &&
-                userRepository.existsByIdNumber(userDto.getIdNumber())) {
-            throw new IllegalArgumentException("ID number already exists");
+                userRepository.existsByIdNumber(userDto.getIdNumber().trim().toLowerCase())) {
+            validationErrors.put("idNumber", "ID number already exists");
         }
-
+        if (!validationErrors.isEmpty()) {
+            throw new com.dgapr.demo.Exception.MultiFieldValidationException(
+                "Validation failed due to duplicate fields", validationErrors);
+        }
         updateUserFromDto(user, userDto);
         if (userDto.getPassword() != null && !userDto.getPassword().trim().isEmpty()) {
             user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+            user.setTokenVersion(user.getTokenVersion() + 1);
+            log.info("Password changed for user {}. Token version incremented to {}.", user.getUsername(), user.getTokenVersion());
         }
-
-        log.debug("Saving updated user: {}", user);
-        return modelMapper.map(userRepository.save(user), UserDto.class);
+        User updatedUser = userRepository.save(user);
+        log.debug("Saving updated user: {}", updatedUser);
+        return modelMapper.map(updatedUser, UserDto.class);
     }
 
     @Transactional
     public void deleteUser(UUID id) {
-        if (!userRepository.existsById(id)) {
-            throw new EntityNotFoundException("User not found");
-        }
-        userRepository.deleteById(id);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        user.setIsDeleted(true);
+        user.setStatus(UserStatu.DELETED);
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void revokeTokens(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with ID " + userId));
+        user.setTokenVersion(user.getTokenVersion() + 1);
+        userRepository.save(user);
     }
 
     private void updateUserFromDto(User user, UserDto userDto) {
-        user.setUsername(userDto.getUsername());
-        user.setIdNumber(userDto.getIdNumber());
-        user.setFirstname(userDto.getFirstname());
-        user.setLastname(userDto.getLastname());
-        user.setEmail(userDto.getEmail());
+        user.setUsername(userDto.getUsername().trim().toLowerCase());
+        user.setIdNumber(userDto.getIdNumber().trim().toLowerCase());
+        user.setFirstname(userDto.getFirstname().trim());
+        user.setLastname(userDto.getLastname().trim());
+        user.setEmail(userDto.getEmail().trim().toLowerCase());
         user.setRole(userDto.getRole());
 
-        // Set default status to ACTIVE if not specified
         if (userDto.getStatus() == null) {
             user.setStatus(UserStatu.ACTIVE);
+            user.setIsDeleted(false);
         } else {
-            user.setStatus(UserStatu.valueOf(userDto.getStatus().name()));
+            user.setStatus(userDto.getStatus());
+            if (userDto.getStatus() == UserStatu.DELETED) {
+                user.setIsDeleted(true);
+            } else {
+                user.setIsDeleted(false);
+            }
         }
     }
 
     public UserResponseDto loadUserByUsername(String username) throws UsernameNotFoundException {
-        try {
-            return modelMapper.map(userRepository.findByUsername(username), UserResponseDto.class);
-        } catch (Exception e) {
-            throw new UsernameNotFoundException("User with username " + username + " not found", e);
-        }
+        User user = userRepository.findByUsername(username.trim().toLowerCase())
+                .orElseThrow(() -> new UsernameNotFoundException("User with username " + username + " not found"));
+        return modelMapper.map(user, UserResponseDto.class);
     }
 }

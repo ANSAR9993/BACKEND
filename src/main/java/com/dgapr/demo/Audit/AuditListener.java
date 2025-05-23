@@ -11,9 +11,13 @@ import jakarta.persistence.PostPersist;
 import jakarta.persistence.PreRemove;
 import jakarta.persistence.PreUpdate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.*;
@@ -23,12 +27,18 @@ public class AuditListener {
 
     private static AuditLogRepository repo;
     private static ObjectMapper mapper;
+    private static ApplicationEventPublisher publisher;
     // hold the JSON snapshot after loading
     private static final Map<Object, String> originalStateMap = Collections.synchronizedMap(new WeakHashMap<>());
 
     @Autowired
     public void setRepo(AuditLogRepository repository) {
         AuditListener.repo = repository;
+    }
+
+    @Autowired
+    public void setPublisher(ApplicationEventPublisher pub) {
+        AuditListener.publisher = pub;
     }
 
     private static ObjectMapper getMapper() {
@@ -47,7 +57,10 @@ public class AuditListener {
                 : "SYSTEM";
     }
 
-    private void persistLog(String table, String rowId, String op, String details) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    protected void persistLog(String table, String rowId, String op, String details) {
+        // Prevent recursion or side effects for User entity
+        // if ("users".equalsIgnoreCase(table)) return;
         AuditLog a = new AuditLog();
         a.setTableName(table);
         a.setRowId(rowId);
@@ -63,8 +76,14 @@ public class AuditListener {
         repo.save(a);
     }
 
+    private void publishAuditEvent(String table, String rowId, String op, String details) {
+        if (publisher == null) return;
+        publisher.publishEvent(new AuditEvent(this, table, rowId, op, details, currentUser()));
+    }
+
     @PostLoad
     public void onLoad(Object entity) {
+        if (entity instanceof AuditLog) return; // Prevent recursion
         try {
             String json = getMapper().writeValueAsString(entity);
             originalStateMap.put(entity, json);
@@ -75,20 +94,22 @@ public class AuditListener {
 
     @PostPersist
     public void onCreate(Object entity) {
+        if (entity instanceof AuditLog) return; // Prevent recursion
         String table = entity.getClass().getAnnotation(jakarta.persistence.Table.class).name();
         String id    = (entity instanceof Identifiable)
                 ? ((Identifiable<?>)entity).idAsString()
                 : "UNKNOWN";
         try {
             String snap = getMapper().writeValueAsString(entity);
-            persistLog(table, id, "CREATE", snap);
+            publishAuditEvent(table, id, "CREATE", snap);
         } catch (Exception e) {
-            persistLog(table, id, "CREATE", "ERROR: " + e.getMessage());
+            publishAuditEvent(table, id, "CREATE", "ERROR: " + e.getMessage());
         }
     }
 
     @PreUpdate
     public void onUpdate(Object entity) {
+        if (entity instanceof AuditLog) return; // Prevent recursion
         String table = entity.getClass().getAnnotation(jakarta.persistence.Table.class).name();
         String id    = (entity instanceof Identifiable)
                 ? ((Identifiable<?>)entity).idAsString()
@@ -120,24 +141,43 @@ public class AuditListener {
 
         try {
             String details = getMapper().writeValueAsString(diffs);
-            persistLog(table, id, op, details);
+            publishAuditEvent(table, id, op, details);
         } catch (Exception e) {
-            persistLog(table, id, op, "ERROR_DIFF: " + e.getMessage());
+            publishAuditEvent(table, id, op, "ERROR_DIFF: " + e.getMessage());
         }
     }
 
     @PreRemove
     public void onHardDelete(Object entity) {
+        if (entity instanceof AuditLog) return; // Prevent recursion
         String table = entity.getClass().getAnnotation(jakarta.persistence.Table.class).name();
         String id    = (entity instanceof Identifiable)
                 ? ((Identifiable<?>)entity).idAsString()
                 : "UNKNOWN";
         try {
             String snap = getMapper().writeValueAsString(entity);
-            persistLog(table, id, "HARD_DELETE", snap);
+            publishAuditEvent(table, id, "HARD_DELETE", snap);
         } catch (Exception e) {
-            persistLog(table, id, "HARD_DELETE", "ERROR: " + e.getMessage());
+            publishAuditEvent(table, id, "HARD_DELETE", "ERROR: " + e.getMessage());
         }
+    }
+
+    @EventListener
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void handleAuditEvent(AuditEvent event) {
+        AuditLog a = new AuditLog();
+        a.setTableName(event.getTable());
+        a.setRowId(event.getRowId());
+        a.setOperation(event.getOp());
+        a.setModifiedBy(event.getModifiedBy());
+        a.setTimestamp(Instant.now());
+        a.setDetails(event.getDetails() == null
+                ? ""
+                : event.getDetails().length() > 2000
+                ? event.getDetails().substring(0, 2000)
+                : event.getDetails()
+        );
+        repo.save(a);
     }
 
     @SuppressWarnings("unchecked")

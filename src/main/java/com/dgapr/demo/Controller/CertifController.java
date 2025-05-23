@@ -4,7 +4,6 @@ import com.dgapr.demo.Dto.CertifDto.CertifCreateDto;
 import com.dgapr.demo.Dto.CertifDto.CertifResponseDto;
 import com.dgapr.demo.Dto.CertifDto.CertifUpdateDto;
 import com.dgapr.demo.Service.CertifService;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,15 +28,15 @@ public class CertifController {
 
     @GetMapping
     public ResponseEntity<Page<CertifResponseDto>> getCertificatsPaginated(
-            @PageableDefault(size = 40, sort = "expirationDate", direction = Sort.Direction.ASC) Pageable pageable,
+            @PageableDefault(size = 100, sort = "expirationDate", direction = Sort.Direction.ASC) Pageable pageable,
             @RequestParam Map<String, String> filterParams
     ) {
-        Page<CertifResponseDto> certificatsPage = certifService.getCertificatsPaginated(pageable, filterParams);
+        Page<CertifResponseDto> certificatsPage = certifService.getCertificats(pageable, filterParams);
         return ResponseEntity.ok(certificatsPage);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CertifResponseDto> getCertificatById(
+    public ResponseEntity<CertifResponseDto> getCertificateById(
             @PathVariable Integer id
     ) {
         return certifService.getCertificatById(id)
@@ -46,7 +45,7 @@ public class CertifController {
     }
 
     @PostMapping
-    public ResponseEntity<Void> createCertificat(
+    public ResponseEntity<Void> createCertificate(
             @RequestBody CertifCreateDto dto
     ) {
         try {
@@ -60,7 +59,7 @@ public class CertifController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CertifResponseDto> updateCertificat(
+    public ResponseEntity<CertifResponseDto> updateCertificate(
             @PathVariable Integer id,
             @RequestBody CertifUpdateDto dto
     ) {
@@ -70,7 +69,7 @@ public class CertifController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCertificat(
+    public ResponseEntity<Void> deleteCertificate(
             @PathVariable Integer id
     ) {
         if (!certifService.deleteCertificat(id)) {

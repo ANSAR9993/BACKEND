@@ -1,6 +1,6 @@
 package com.dgapr.demo.Model;
 
-public enum Roles {
+public enum Role {
     USER,
     ADMIN,
     SUPER_ADMIN

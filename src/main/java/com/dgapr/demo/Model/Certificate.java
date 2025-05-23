@@ -12,17 +12,14 @@ import org.hibernate.annotations.SQLRestriction;
 @Setter
 @ToString
 @Entity
-@SQLDelete(sql = "UPDATE Certificate SET Is_Deleted = true WHERE id = ?")
-@SQLRestriction("Is_Deleted = false")
-@Table(name = "Certificate", uniqueConstraints = {
-        @UniqueConstraint(columnNames = "ID_Demand")
-})
+@SQLDelete(sql = "UPDATE Certificate SET Is_Deleted = 1 WHERE id = ?")
+@Table(name = "Certificate")
 @EntityListeners(AuditListener.class)
-public class Certificate extends AuditedEntity implements Identifiable<Integer> {
+public class Certificate extends AuditedEntity implements Identifiable<Long> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     @Column(name = "ID_Demand", nullable = false)
     private String idDemand;
@@ -49,7 +46,7 @@ public class Certificate extends AuditedEntity implements Identifiable<Integer> 
     private java.time.LocalDate expirationDate;
 
     @Override
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 

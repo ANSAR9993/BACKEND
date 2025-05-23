@@ -31,12 +31,12 @@ public class CertifService {
         this.modelMapper = modelMapper;
     }
 
-    public Page<CertifResponseDto> getCertificatsPaginated(Pageable pageable, Map<String, String> filterParams) {
-        return getCertifResponseDtos(pageable, filterParams);
+    public Page<CertifResponseDto> getCertificats(Pageable pageable, Map<String, String> filterParams) {
+        return getCertif(pageable, filterParams);
     }
 
     @NotNull
-    private Page<CertifResponseDto> getCertifResponseDtos(Pageable pageable, Map<String, String> filterParams) {
+    private Page<CertifResponseDto> getCertif(Pageable pageable, Map<String, String> filterParams) {
         CertificatSpecification spec = new CertificatSpecification(filterParams);
         Page<Certificate> certificatPage = certifRepository.findAll(spec, pageable);
 
@@ -96,12 +96,4 @@ public class CertifService {
                 })
                 .orElse(false);
     }
-
-//    public List<CertifResponseDto> getAllCertificats() {
-//        return certifRepository.findAll()
-//                .stream()
-//                .map(certificat -> modelMapper.map(certificat, CertifResponseDto.class))
-//                .collect(Collectors.toList());
-//    }
-
 }

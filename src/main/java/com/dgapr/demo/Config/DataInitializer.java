@@ -1,7 +1,7 @@
 package com.dgapr.demo.Config;
 
 
-import com.dgapr.demo.Model.Roles;
+import com.dgapr.demo.Model.Role;
 import com.dgapr.demo.Model.User;
 import com.dgapr.demo.Model.UserStatu;
 import com.dgapr.demo.Repository.UserRepository;
@@ -29,22 +29,24 @@ public class DataInitializer implements CommandLineRunner {
     public void run(String... args) {
         log.info("🔄 Running DataInitializer…");
 
-        String username = "admin";
+        String username = "user";
         if (userRepo.findByUsername(username).isEmpty()) {
+            log.info("About to create user with username: {}", username);
             User u = new User();
             u.setUsername(username);
-            u.setEmail("admin@example.com");
-            u.setPassword(passwordEncoder.encode("admin"));
+            u.setEmail("user@example.com");
+            u.setPassword(passwordEncoder.encode("user"));
             u.setFirstname("System");
             u.setLastname("Administrator");
-            u.setIdNumber("0000-ADMIN");
+            u.setIdNumber("0100-user");
             u.setStatus(UserStatu.ACTIVE);
-            u.setRole(Roles.ADMIN);
+            u.setRole(Role.USER);
             u.setCreatedBy("System");
             u.setUpdatedAt(u.getCreatedAt());
             u.setUpdatedBy("System");
 
             userRepo.save(u);
+            log.info("userRepo.save(u) called for user with id: {}", u.getId());
             log.debug("Creating default user '{}'", username);
             log.info("✅ Created default user '{}'", username);
         } else {
@@ -54,3 +56,4 @@ public class DataInitializer implements CommandLineRunner {
         log.info("🏁 DataInitializer complete.");
     }
 }
+
