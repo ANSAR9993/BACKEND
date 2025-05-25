@@ -1,5 +1,6 @@
 package com.dgapr.demo.Controller;
 
+import com.dgapr.demo.Audit.AuditContext;
 import com.dgapr.demo.Dto.AuthDto.AuthRequest;
 import com.dgapr.demo.Dto.AuthDto.AuthResponse;
 import com.dgapr.demo.Model.User.User;
@@ -73,9 +74,9 @@ public class AuthenticationController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("message", "No authenticated user found to logout."));
         }
-
         try {
             log.info("Logging out user: {}", authenticatedUser.getUsername());
+            AuditContext.disableAudit();
             userService.revokeTokens(authenticatedUser.getId());
             SecurityContextHolder.clearContext();
             return ResponseEntity.ok(Map.of("message", "Logged out successfully."));
@@ -83,6 +84,10 @@ public class AuthenticationController {
             log.error("Error during logout for user {}: {}", authenticatedUser.getUsername(), e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("message", "An error occurred during logout."));
+        } finally {
+            AuditContext.clear();
         }
+
     }
 }
+

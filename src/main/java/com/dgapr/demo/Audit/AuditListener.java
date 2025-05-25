@@ -10,6 +10,7 @@ import jakarta.persistence.PostLoad;
 import jakarta.persistence.PostPersist;
 import jakarta.persistence.PreRemove;
 import jakarta.persistence.PreUpdate;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
@@ -33,6 +34,7 @@ import java.util.*;
  * <p>The listener uses a {@link WeakHashMap} to store a snapshot of entities after loading
  * to facilitate diffing during updates.</p>
  */
+@Slf4j
 @Component
 public class AuditListener {
 
@@ -128,6 +130,7 @@ public class AuditListener {
     /**
      * Publishes an {@link AuditEvent} to the Spring application context.
      * This is the preferred way to trigger audit logging.
+     * If AuditContext indicates that auditing is disabled, this method will not publish an event.
      *
      * @param table   The name of the table affected.
      * @param rowId   The ID of the affected row.
@@ -135,7 +138,14 @@ public class AuditListener {
      * @param details Optional details about the operation.
      */
     private void publishAuditEvent(String table, String rowId, String op, String details) {
-        if (publisher == null) return;
+        if (AuditContext.isAuditDisabled()) {
+            log.debug("Audit event publication skipped for table: {}, rowId: {}, op: {} due to AuditContext", table, rowId, op);
+            return;
+        }
+        if (publisher == null) {
+            log.warn("ApplicationEventPublisher is null. Audit event for table: {}, rowId: {}, op: {} will not be published.", table, rowId, op);
+            return;
+        }
         publisher.publishEvent(new AuditEvent(this, table, rowId, op, details, currentUser()));
     }
 
