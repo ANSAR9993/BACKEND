@@ -1,7 +1,7 @@
 package com.dgapr.demo.Dto.UserDto;
 
-import com.dgapr.demo.Model.Role;
-import com.dgapr.demo.Model.UserStatu;
+import com.dgapr.demo.Model.User.Role;
+import com.dgapr.demo.Model.User.UserStatu;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;

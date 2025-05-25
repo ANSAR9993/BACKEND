@@ -1,13 +1,18 @@
-package com.dgapr.demo.Model;
+package com.dgapr.demo.Model.Certificate;
 
 import com.dgapr.demo.Audit.AuditListener;
+import com.dgapr.demo.Model.Identifiable;
+import com.dgapr.demo.Model.SoftDeletableEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
 
+/**
+ * Represents a Certificate entity in the database.
+ * This entity supports soft deletion and auditing.
+ */
 @Getter
 @Setter
 @ToString
@@ -15,7 +20,7 @@ import org.hibernate.annotations.SQLRestriction;
 @SQLDelete(sql = "UPDATE Certificate SET Is_Deleted = 1 WHERE id = ?")
 @Table(name = "Certificate")
 @EntityListeners(AuditListener.class)
-public class Certificate extends AuditedEntity implements Identifiable<Long> {
+public class Certificate extends SoftDeletableEntity implements Identifiable<Long> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

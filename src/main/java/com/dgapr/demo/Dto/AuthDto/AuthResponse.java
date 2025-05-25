@@ -1,6 +1,5 @@
 package com.dgapr.demo.Dto.AuthDto;
 
-import com.dgapr.demo.Model.Role;
 import lombok.*;
 
 @Getter

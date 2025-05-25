@@ -14,22 +14,12 @@ import java.util.Map;
 @ControllerAdvice // This makes it a global exception handler
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
-    // Handle general exceptions not caught by specific handlers
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Object> handleAllExceptions(Exception ex, WebRequest request) {
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
-        body.put("error", "Internal Server Error");
-        body.put("message", "An unexpected error occurred: " + ex.getMessage()); // Avoid leaking sensitive details in production
-        body.put("path", request.getDescription(false)); // Includes request path
-
-        // Log the error server-side
-        logger.error("Unhandled exception: " + ex.getMessage(), ex); // Use logger
-
-        return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
+    /**
+    * Handles MultiFieldValidationException and returns a 400 Bad Request response.
+    *
+    * @param ex the MultiFieldValidationException thrown
+    * @return a ResponseEntity containing error details, validation errors, and HTTP 400 status
+    */
     @ExceptionHandler(MultiFieldValidationException.class)
     public ResponseEntity<Object> handleMultiFieldValidationException(MultiFieldValidationException ex) {
         Map<String, Object> body = new LinkedHashMap<>();
@@ -41,6 +31,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
+    /**
+    * Handles IllegalArgumentException and returns a 400 Bad Request response.
+    *
+    * @param ex the IllegalArgumentException thrown
+    * @return a ResponseEntity containing error details and HTTP 400 status
+    */
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException ex) {
         Map<String, Object> body = new LinkedHashMap<>();
@@ -49,5 +45,44 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         body.put("error", HttpStatus.BAD_REQUEST.getReasonPhrase());
         body.put("message", ex.getMessage());
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Handles DuplicateCertificateException, returning a 409 Conflict status.
+     * This indicates that the request could not be completed due to a conflict
+     * with the current state of the target resource.
+     *
+     * @param ex The DuplicateCertificateException caught.
+     * @return A ResponseEntity with a 409 Conflict status and error details.
+     */
+    @ExceptionHandler(DuplicateCertificateException.class)
+    public ResponseEntity<Object> handleDuplicateCertificateException(DuplicateCertificateException ex) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", LocalDateTime.now().toString());
+        body.put("status", HttpStatus.CONFLICT.value());
+        body.put("error", HttpStatus.CONFLICT.getReasonPhrase());
+        body.put("message", ex.getMessage());
+        return new ResponseEntity<>(body, HttpStatus.CONFLICT);
+    }
+
+    /**
+     * Handles all uncaught exceptions that are not specifically handled by other exception handlers.
+     *
+     * @param ex the exception that was thrown
+     * @param request the current web request
+     * @return a ResponseEntity containing error details and HTTP 500 status
+     */
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Object> handleAllExceptions(Exception ex, WebRequest request) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
+        body.put("error", "Internal Server Error");
+        body.put("message", "An unexpected error occurred.");
+        body.put("path", request.getDescription(false));
+
+        logger.error("Unhandled exception: " + ex.getMessage(), ex);
+
+        return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

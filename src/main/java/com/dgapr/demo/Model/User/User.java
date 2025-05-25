@@ -1,11 +1,12 @@
-package com.dgapr.demo.Model;
+package com.dgapr.demo.Model.User;
 
 import com.dgapr.demo.Audit.AuditListener;
+import com.dgapr.demo.Model.Identifiable;
+import com.dgapr.demo.Model.SoftDeletableEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
@@ -20,17 +21,38 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Represents an application user, with auditing and soft-delete support.
+ * Implements Spring Security's UserDetails so it can be returned directly
+ * by CustomUserDetailsService.
+ */
+/**
+ * Represents an application user, with auditing and soft-delete support.
+ * Implements Spring Security's UserDetails so it can be returned directly
+ * by CustomUserDetailsService.
+ *
+ * <p>This entity is mapped to the "users" table in the database.</p>
+ *
+ * <p>Soft-deletion is implemented via {@code @SQLDelete}, marking a user as deleted
+ * rather than physically removing them from the database.</p>
+ *
+ * <p>Auditing fields ({@code createdAt}, {@code createdBy}, {@code updatedAt}, {@code updatedBy})
+ * are automatically managed by Spring Data JPA's {@link AuditingEntityListener}
+ * and a custom {@link AuditListener}.</p>
+ */
 @Getter
 @Setter
 @Entity
 @SQLDelete(sql = "UPDATE users SET Is_Deleted = 1 WHERE id = ?")
 @Table(name = "users")
-@EntityListeners({
-        AuditListener.class,
-        AuditingEntityListener.class
-})
-public class User extends AuditedEntity implements Identifiable<UUID>, UserDetails {
+//@EntityListeners({
+//        AuditListener.class,
+//        AuditingEntityListener.class
+//})
+@EntityListeners(AuditListener.class)
+public class User extends SoftDeletableEntity implements Identifiable<UUID>, UserDetails {
 
+    /** Primary key; generated as a UUID before insert if not set. */
     @Id
     @Column(columnDefinition = "uniqueidentifier", updatable = false)
     private UUID id;
@@ -53,10 +75,12 @@ public class User extends AuditedEntity implements Identifiable<UUID>, UserDetai
     @Column(name = "id_number", unique = true, nullable = false)
     private String idNumber;
 
+    /** Roles determine authorities (USER, ADMIN, SUPER_ADMIN). */
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private Role role; // USER, ADMIN, SUPER_ADMIN
+    private Role role;
 
+    /** Status controls account locking/enabling (ACTIVE, SUSPENDED, DELETED). */
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private UserStatu status;
@@ -77,6 +101,7 @@ public class User extends AuditedEntity implements Identifiable<UUID>, UserDetai
     @Column(name = "updated_by")
     private String updatedBy;
 
+    /** Used to invalidate issued tokens by incrementing after logout/password reset. */
     @Column(nullable = false)
     private Long tokenVersion = 0L;
 
@@ -85,6 +110,9 @@ public class User extends AuditedEntity implements Identifiable<UUID>, UserDetai
         return id;
     }
 
+    /**
+     * Ensure a UUID is generated if none is provided.
+     */
     @PrePersist
     public void generateId(){
         if(id == null){
@@ -92,15 +120,32 @@ public class User extends AuditedEntity implements Identifiable<UUID>, UserDetai
         }
     }
 
+    /**
+     * Grant the Spring Security authority based on the Role enum.
+     */
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
+
     @Override public String getPassword() { return password; }
+
     @Override public String getUsername() { return username; }
+
     @Override public boolean isAccountNonExpired() { return true; }
-    @Override public boolean isAccountNonLocked() { return status != UserStatu.SUSPENDED || status != UserStatu.DELETED; }
+
+    /**
+     * An account is non-locked if its status is neither SUSPENDED nor DELETED.
+     *
+     * @return true if status != SUSPENDED && status != DELETED
+     */
+    @Override public boolean isAccountNonLocked() { return status != UserStatu.SUSPENDED; }
+
     @Override public boolean isCredentialsNonExpired() { return true; }
+
+    /**
+     * An account is enabled only when status == ACTIVE.
+     */
     @Override public boolean isEnabled() { return status == UserStatu.ACTIVE; }
 
 }

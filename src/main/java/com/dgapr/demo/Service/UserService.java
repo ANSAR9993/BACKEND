@@ -2,8 +2,8 @@ package com.dgapr.demo.Service;
 
 import com.dgapr.demo.Dto.UserDto.UserDto;
 import com.dgapr.demo.Dto.UserDto.UserResponseDto;
-import com.dgapr.demo.Model.User;
-import com.dgapr.demo.Model.UserStatu;
+import com.dgapr.demo.Model.User.User;
+import com.dgapr.demo.Model.User.UserStatu;
 import com.dgapr.demo.Repository.UserRepository;
 import com.dgapr.demo.Specification.UserSpecification;
 import jakarta.persistence.EntityNotFoundException;
@@ -17,11 +17,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -44,13 +41,6 @@ public class UserService {
         Page<User> page = userRepository.findAll(spec, pageable);
         return page.map(u -> modelMapper.map(u, UserResponseDto.class));
     }
-//
-//    public List<UserResponseDto> getAllUsers() {
-//        return userRepository.findAll()
-//                .stream()
-//                .map(user -> modelMapper.map(user, UserResponseDto.class))
-//                .collect(Collectors.toList());
-//    }
 
     public UserResponseDto getUserById(UUID id) throws EntityNotFoundException {
         User user = userRepository.findById(id)
