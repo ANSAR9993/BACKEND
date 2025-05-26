@@ -58,7 +58,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final JwtTokenProvider tokenProvider;
+    private final com.dgapr.demo.Security.JwtTokenProvider tokenProvider;
     private final CustomUserDetailsService userDetailsService;
     private final UserRepository userRepository;
 
@@ -78,7 +78,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         // 1. Extract the Authorization header
-        String header = req.getHeader(JwtTokenProvider.AUTH_HEADER);
+        String header = req.getHeader(com.dgapr.demo.Security.JwtTokenProvider.AUTH_HEADER);
 
         // Check if the header exists and starts with "Bearer "
         if (header != null && header.startsWith("Bearer ")) {

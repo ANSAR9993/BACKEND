@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.dgapr</groupId>
-	<artifactId>demo</artifactId>
+	<artifactId>Backend_DSI-Certificates_UsersManagment</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>demo</name>

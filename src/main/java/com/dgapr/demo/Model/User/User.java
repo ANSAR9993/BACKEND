@@ -78,12 +78,12 @@ public class User extends SoftDeletableEntity implements Identifiable<UUID>, Use
     /** Roles determine authorities (USER, ADMIN, SUPER_ADMIN). */
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private Role role;
+    private com.dgapr.demo.Model.User.Role role;
 
     /** Status controls account locking/enabling (ACTIVE, SUSPENDED, DELETED). */
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private UserStatu status;
+    private com.dgapr.demo.Model.User.UserStatu status;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -139,13 +139,13 @@ public class User extends SoftDeletableEntity implements Identifiable<UUID>, Use
      *
      * @return true if status != SUSPENDED && status != DELETED
      */
-    @Override public boolean isAccountNonLocked() { return status != UserStatu.SUSPENDED; }
+    @Override public boolean isAccountNonLocked() { return status != com.dgapr.demo.Model.User.UserStatu.SUSPENDED; }
 
     @Override public boolean isCredentialsNonExpired() { return true; }
 
     /**
      * An account is enabled only when status == ACTIVE.
      */
-    @Override public boolean isEnabled() { return status == UserStatu.ACTIVE; }
+    @Override public boolean isEnabled() { return status == com.dgapr.demo.Model.User.UserStatu.ACTIVE; }
 
 }

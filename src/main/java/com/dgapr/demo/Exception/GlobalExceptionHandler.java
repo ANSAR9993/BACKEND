@@ -20,8 +20,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     * @param ex the MultiFieldValidationException thrown
     * @return a ResponseEntity containing error details, validation errors, and HTTP 400 status
     */
-    @ExceptionHandler(MultiFieldValidationException.class)
-    public ResponseEntity<Object> handleMultiFieldValidationException(MultiFieldValidationException ex) {
+    @ExceptionHandler(com.dgapr.demo.Exception.MultiFieldValidationException.class)
+    public ResponseEntity<Object> handleMultiFieldValidationException(com.dgapr.demo.Exception.MultiFieldValidationException ex) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", LocalDateTime.now().toString());
         body.put("status", HttpStatus.BAD_REQUEST.value());
@@ -55,8 +55,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
      * @param ex The DuplicateCertificateException caught.
      * @return A ResponseEntity with a 409 Conflict status and error details.
      */
-    @ExceptionHandler(DuplicateCertificateException.class)
-    public ResponseEntity<Object> handleDuplicateCertificateException(DuplicateCertificateException ex) {
+    @ExceptionHandler(com.dgapr.demo.Exception.DuplicateCertificateException.class)
+    public ResponseEntity<Object> handleDuplicateCertificateException(com.dgapr.demo.Exception.DuplicateCertificateException ex) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", LocalDateTime.now().toString());
         body.put("status", HttpStatus.CONFLICT.value());

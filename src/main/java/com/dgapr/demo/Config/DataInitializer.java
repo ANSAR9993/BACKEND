@@ -1,9 +1,9 @@
 package com.dgapr.demo.Config;
 /*
-import com.dgapr.demo.Model.User.Role;
-import com.dgapr.demo.Model.User.User;
-import com.dgapr.demo.Model.User.UserStatu;
-import com.dgapr.demo.Repository.UserRepository;
+import com.dgapr.User.Model.demo.Role;
+import com.dgapr.User.Model.demo.User;
+import com.dgapr.User.Model.demo.UserStatu;
+import com.dgapr.Repository.demo.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;

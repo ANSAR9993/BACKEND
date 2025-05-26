@@ -138,7 +138,7 @@ public class AuditListener {
      * @param details Optional details about the operation.
      */
     private void publishAuditEvent(String table, String rowId, String op, String details) {
-        if (AuditContext.isAuditDisabled()) {
+        if (com.dgapr.demo.Audit.AuditContext.isAuditDisabled()) {
             log.debug("Audit event publication skipped for table: {}, rowId: {}, op: {} due to AuditContext", table, rowId, op);
             return;
         }
@@ -146,7 +146,7 @@ public class AuditListener {
             log.warn("ApplicationEventPublisher is null. Audit event for table: {}, rowId: {}, op: {} will not be published.", table, rowId, op);
             return;
         }
-        publisher.publishEvent(new AuditEvent(this, table, rowId, op, details, currentUser()));
+        publisher.publishEvent(new com.dgapr.demo.Audit.AuditEvent(this, table, rowId, op, details, currentUser()));
     }
 
     /**
@@ -274,7 +274,7 @@ public class AuditListener {
      */
     @EventListener
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void handleAuditEvent(AuditEvent event) {
+    public void handleAuditEvent(com.dgapr.demo.Audit.AuditEvent event) {
         AuditLog a = new AuditLog();
         a.setTableName(event.getTable());
         a.setRowId(event.getRowId());
