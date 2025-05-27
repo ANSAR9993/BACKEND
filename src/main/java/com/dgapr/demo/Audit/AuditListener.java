@@ -139,15 +139,18 @@ public class AuditListener {
      */
     private void publishAuditEvent(String table, String rowId, String op, String details) {
         if (com.dgapr.demo.Audit.AuditContext.isAuditDisabled()) {
-            log.debug("Audit event publication skipped for table: {}, rowId: {}, op: {} due to AuditContext", table, rowId, op);
+            log.debug("Audit event publication skipped (but core auditing proceeds) for table={}, rowId={}, op={}", table, rowId, op);
             return;
         }
+
         if (publisher == null) {
-            log.warn("ApplicationEventPublisher is null. Audit event for table: {}, rowId: {}, op: {} will not be published.", table, rowId, op);
+            log.warn("ApplicationEventPublisher is null. Audit event for table={}, rowId={}, op={} will not be published.", table, rowId, op);
             return;
         }
-        publisher.publishEvent(new com.dgapr.demo.Audit.AuditEvent(this, table, rowId, op, details, currentUser()));
+
+        publisher.publishEvent(new AuditEvent(this, table, rowId, op, details, currentUser()));
     }
+
 
     /**
      * JPA callback method executed after an entity is loaded from the database.

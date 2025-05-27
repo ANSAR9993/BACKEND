@@ -139,11 +139,7 @@ public class UserService {
             user.setIsDeleted(false);
         } else {
             user.setStatus(userDto.getStatus());
-            if (userDto.getStatus() == UserStatu.DELETED) {
-                user.setIsDeleted(true);
-            } else {
-                user.setIsDeleted(false);
-            }
+            user.setIsDeleted(userDto.getStatus() == UserStatu.DELETED);
         }
     }
 

@@ -45,11 +45,11 @@ import java.util.UUID;
 @Entity
 @SQLDelete(sql = "UPDATE users SET Is_Deleted = 1 WHERE id = ?")
 @Table(name = "users")
-//@EntityListeners({
-//        AuditListener.class,
-//        AuditingEntityListener.class
-//})
-@EntityListeners(AuditListener.class)
+@EntityListeners({
+        AuditListener.class,
+        AuditingEntityListener.class
+})
+//@EntityListeners(AuditListener.class)
 public class User extends SoftDeletableEntity implements Identifiable<UUID>, UserDetails {
 
     /** Primary key; generated as a UUID before insert if not set. */

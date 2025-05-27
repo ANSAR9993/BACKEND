@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.SQLDelete;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
  * Represents a Certificate entity in the database.
@@ -19,7 +20,10 @@ import org.hibernate.annotations.SQLDelete;
 @Entity
 @SQLDelete(sql = "UPDATE Certificate SET Is_Deleted = 1 WHERE id = ?")
 @Table(name = "Certificate")
-@EntityListeners(AuditListener.class)
+@EntityListeners({
+        AuditListener.class,
+        AuditingEntityListener.class
+})
 public class Certificate extends SoftDeletableEntity implements Identifiable<Long> {
 
     @Id
