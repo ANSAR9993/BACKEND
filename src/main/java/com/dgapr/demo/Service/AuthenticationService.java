@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
  * Core authentication logic:
  *  - verifies username existence & account status
  *  - delegates to AuthenticationManager for credential check23
-
  *  - issues JWT on success
  */
 @Service
