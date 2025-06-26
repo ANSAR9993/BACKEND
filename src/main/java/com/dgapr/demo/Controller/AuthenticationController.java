@@ -46,7 +46,9 @@ public class AuthenticationController {
      * @param request AuthRequest payload with username & password
      * @return 200 + AuthResponse on success; 401 + AuthResponse on bad credentials
      */
+    
     @PostMapping("/login")
+    
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody AuthRequest request) {
         AuthResponse response = authenticationService.authenticate(request);
         if (response.isSuccess()) {

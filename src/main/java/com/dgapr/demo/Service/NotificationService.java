@@ -56,7 +56,7 @@ public class NotificationService {
      *
      * The method is triggered automatically based on the defined cron expression.
      */
-    @Scheduled(cron = "0 00 10 ? * SUN")
+    @Scheduled(cron = "0 54 21 ? * TUE")
     @Transactional
     public void sendCertificateExpiryNotifications() {
         log.info("Scheduled notification task triggered");

@@ -28,6 +28,12 @@ public class AuthenticationService {
     private final JwtTokenProvider tokenProvider;
     private final UserRepository userRepository;
 
+    // public AuthenticationService(AuthenticationManager authenticationManager, JwtTokenProvider tokenProvider, UserRepository userRepository) {
+    //     this.authenticationManager = authenticationManager;
+    //     this.tokenProvider = tokenProvider;
+    //     this.userRepository = userRepository;
+    // }
+
     /**
      * Attempt to authenticate with the given credentials.
      * Handles account suspension/deletion and returns localized messages.
